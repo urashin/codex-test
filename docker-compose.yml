@@ -1,0 +1,29 @@
+autoheal: true
+version: "3.9"
+services:
+  web:
+    build: ./web
+    ports: ["3000:3000"]
+    depends_on: [api, cache, db]
+    environment:
+      NEXT_PUBLIC_API_URL: http://api:8000
+  api:
+    build: ./api
+    ports: ["8000:8000"]
+    depends_on: [runner, db, cache]
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/postgres
+      REDIS_URL: redis://cache:6379/0
+      RUNNER_URL: http://runner:2000
+  runner:
+    image: ghcr.io/engineer-man/piston:latest
+    ports: ["2000:2000"]
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: postgres
+    volumes: ["db-data:/var/lib/postgresql/data"]
+  cache:
+    image: redis:7-alpine
+volumes:
+  db-data:
